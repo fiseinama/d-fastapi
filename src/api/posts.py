@@ -1,55 +1,44 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from datetime import datetime
 
 from src.schemas.posts import PostCreate, PostUpdate, PostOut
+from src.infrastructure.sqlite.repositories.posts import PostRepository
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-db_posts: List[PostOut] = []
+# иниц репозиторий
+post_repo = PostRepository()
 
 
 @router.get("/", response_model=List[PostOut])
 async def get_all_posts():
-    return db_posts
+    return post_repo.get_all()
 
 
 @router.get("/{post_id}", response_model=PostOut)
 async def get_one_post(post_id: int):
-    for post in db_posts:
-        if post.id == post_id:
-            return post
-    raise HTTPException(status_code=404, detail="Пост не найден")
+    post = post_repo.get_by_id(post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Пост не найден")
+    return post
 
 
 @router.post("/", response_model=PostOut, status_code=status.HTTP_201_CREATED)
 async def create_post(post_data: PostCreate):
-    new_id = len(db_posts) + 1
-    new_post = PostOut(
-        id=new_id,
-        created_at=datetime.now(),
-        **post_data.model_dump()
-    )
-    db_posts.append(new_post)
-    return new_post
+    return post_repo.create(post_data)
 
 
 @router.put("/{post_id}", response_model=PostOut)
 async def update_post(post_id: int, post_data: PostUpdate):
-    for index, post in enumerate(db_posts):
-        if post.id == post_id:
-            update_dict = post_data.model_dump(exclude_unset=True)
-            updated_data = post.model_dump()
-            updated_data.update(update_dict)
-            db_posts[index] = PostOut(**updated_data)
-            return db_posts[index]
-    raise HTTPException(status_code=404, detail="Пост не найден")
+    post = post_repo.update(post_id, post_data)
+    if not post:
+        raise HTTPException(status_code=404, detail="Пост не найден")
+    return post
 
 
 @router.delete("/{post_id}")
 async def delete_post(post_id: int):
-    for index, post in enumerate(db_posts):
-        if post.id == post_id:
-            db_posts.pop(index)
-            return {"detail": f"Пост {post_id} успешно удалён"}
-    raise HTTPException(status_code=404, detail="Пост не найден")
+    success = post_repo.delete(post_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Пост не найден")
+    return {"detail": f"Пост {post_id} успешно удалён"}

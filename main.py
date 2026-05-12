@@ -3,10 +3,21 @@ import uvicorn
 
 from src.app import create_app
 
+
+from src.infrastructure.sqlite.database import engine, Base
+
+
+from src.infrastructure.sqlite.models.users import User
+from src.infrastructure.sqlite.models.posts import Post
+from src.infrastructure.sqlite.models.category import Category
+from src.infrastructure.sqlite.models.comment import Comment
+from src.infrastructure.sqlite.models.location import Location
+
 app = create_app()
 
 
 async def run() -> None:
+    Base.metadata.create_all(bind=engine)
     config = uvicorn.Config(
         "main:app", host="127.0.0.1", port=8000, reload=False
     )
