@@ -17,7 +17,7 @@ app = create_app()
 
 
 async def run() -> None:
-    Base.metadata.create_all(bind=engine)
+    #Base.metadata.create_all(bind=engine)
     config = uvicorn.Config(
         "main:app", host="127.0.0.1", port=8000, reload=False
     )
