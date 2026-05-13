@@ -28,11 +28,13 @@ class UserRepository:
 
     def update(self, id: int, data: UserUpdate) -> Optional[User]:
         with get_session() as session:
-            user = self.get_by_id(id)
+            user = session.query(User).filter(User.id == id).first()
             if not user:
                 return None
+
             for key, value in data.model_dump(exclude_unset=True).items():
                 setattr(user, key, value)
+
             session.commit()
             session.refresh(user)
             return user

@@ -25,3 +25,12 @@ class PostRepository:
             for key, value in data.model_dump(exclude_unset=True).items():
                 setattr(post, key, value)
             return post
+
+    def delete(self, post_id: int) -> bool:
+        with get_session() as session:
+            post = session.query(Post).filter(Post.id == post_id).first()
+            if not post:
+                return False
+            session.delete(post)
+            session.commit()
+            return True

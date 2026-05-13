@@ -20,7 +20,6 @@ class CategoryRepository:
 
     def update(self, id: int, data: CategoryUpdate) -> Optional[Category]:
         with get_session() as session:
-            # Ищем ВНУТРИ текущей сессии
             category = session.query(Category).filter(Category.id == id).first()
             if not category:
                 return None
