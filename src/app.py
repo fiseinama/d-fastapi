@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from src.api.posts import router as posts_router
@@ -7,11 +8,27 @@ from src.api.comments import router as comments_router
 from src.api.users import router as users_router
 from src.api.location import router as location_router
 
+# Импортируем наши исключения
+from src.core.exceptions import NotFoundException, AlreadyExistsException, InfrastructureException
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Blogicum API",
         version="1.0.0"
     )
+
+    # Регистрация обработчиков ошибок
+    @app.exception_handler(NotFoundException)
+    async def not_found_exception_handler(request: Request, exc: NotFoundException):
+        return JSONResponse(status_code=404, content={"detail": exc.message})
+
+    @app.exception_handler(AlreadyExistsException)
+    async def already_exists_exception_handler(request: Request, exc: AlreadyExistsException):
+        return JSONResponse(status_code=409, content={"detail": exc.message})
+
+    @app.exception_handler(InfrastructureException)
+    async def infrastructure_exception_handler(request: Request, exc: InfrastructureException):
+        return JSONResponse(status_code=500, content={"detail": f"Ошибка сервера: {exc.message}"})
 
     app.add_middleware(
         CORSMiddleware,

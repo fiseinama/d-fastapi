@@ -1,12 +1,9 @@
 import asyncio
 import uvicorn
-
 from src.app import create_app
-
-
 from src.infrastructure.sqlite.database import engine, Base
 
-
+# Импорты моделей необходимы для работы SQLAlchemy
 from src.infrastructure.sqlite.models.users import User
 from src.infrastructure.sqlite.models.posts import Post
 from src.infrastructure.sqlite.models.category import Category
@@ -15,11 +12,13 @@ from src.infrastructure.sqlite.models.location import Location
 
 app = create_app()
 
-
 async def run() -> None:
-    #Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
     config = uvicorn.Config(
-        "main:app", host="127.0.0.1", port=8000, reload=False
+        "main:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=False
     )
     server = uvicorn.Server(config=config)
     tasks = (
@@ -27,7 +26,6 @@ async def run() -> None:
     )
 
     await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
