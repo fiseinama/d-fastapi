@@ -14,3 +14,8 @@ class AlreadyExistsException(PostAppException):
 class InfrastructureException(PostAppException):
     """Ошибка на уровне базы данных"""
     pass
+
+class UnauthorizedException(PostAppException):
+    def __init__(self, detail: str = "Не авторизован"):
+        self.detail = detail
+        self.status_code = 401

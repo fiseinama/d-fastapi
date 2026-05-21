@@ -58,3 +58,13 @@ class UserOut(UserBase):
     is_staff: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+# Схема, которую пришлет пользователь при логине
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+# Схема, которую мы вернем в ответ на успешный логин
+class Token(BaseModel):
+    access_token: str
+    token_type: str

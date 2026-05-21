@@ -7,9 +7,10 @@ from src.api.categories import router as categories_router
 from src.api.comments import router as comments_router
 from src.api.users import router as users_router
 from src.api.location import router as location_router
+from src.api.auth import router as auth_router
 
 # Импортируем наши исключения
-from src.core.exceptions import NotFoundException, AlreadyExistsException, InfrastructureException
+from src.core.exceptions import NotFoundException, AlreadyExistsException, InfrastructureException, UnauthorizedException
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -30,6 +31,10 @@ def create_app() -> FastAPI:
     async def infrastructure_exception_handler(request: Request, exc: InfrastructureException):
         return JSONResponse(status_code=500, content={"detail": f"Ошибка сервера: {exc.message}"})
 
+    @app.exception_handler(UnauthorizedException)
+    async def unauthorized_exception_handler(request: Request, exc: UnauthorizedException):
+        return JSONResponse(status_code=401, content={"detail": exc.detail})
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -37,6 +42,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(auth_router, prefix="/api/v1")
 
     app.include_router(posts_router, prefix="/api/v1")
     app.include_router(categories_router, prefix="/api/v1")
