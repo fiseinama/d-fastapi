@@ -1,15 +1,15 @@
 from fastapi import Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import OAuth2PasswordBearer  # <-- Меняем импорт здесь
 from src.core.security import decode_access_token
 from src.infrastructure.sqlite.repositories.user import UserRepository
 from src.core.exceptions import UnauthorizedException
 
-security = HTTPBearer()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-
+def get_current_user(
+        token: str = Depends(oauth2_scheme)
+):
     payload = decode_access_token(token)
 
     user_id = payload.get("sub")

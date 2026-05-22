@@ -4,3 +4,4 @@ __pycache__/
 .idea/
 .envtypenano
 sqlite.db
+.env

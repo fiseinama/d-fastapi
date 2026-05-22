@@ -3,11 +3,11 @@ from typing import Optional
 import jwt
 import bcrypt
 from src.core.exceptions import UnauthorizedException
+from src.core.config import settings
 
-# Ключ шифрования и алгоритм
-SECRET_KEY = "SUPER_SECRET_KEY_FOR_BLOGICUM_APPLICATION_2026"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 def hash_password(password: str) -> str:
