@@ -28,6 +28,7 @@ class CommentRepository:
                 session.add(comment)
                 session.commit()
                 session.refresh(comment)
+                session.expunge(comment)
                 return comment
         except IntegrityError as e:
             raise AlreadyExistsException(f"Комментарий уже существует или нарушены связи: {str(e.orig)}")
@@ -44,11 +45,12 @@ class CommentRepository:
                     setattr(comment, key, value)
                 session.commit()
                 session.refresh(comment)
+                session.expunge(comment)
                 return comment
         except IntegrityError as e:
             raise AlreadyExistsException(f"Ошибка обновления: данные конфликтуют: {str(e.orig)}")
         except SQLAlchemyError as e:
-            raise InfrastructureException(f"Ошибка при обновлении комментария: {str(e)}")
+            raise InfrastructureException(f"Ошибка комментария: {str(e)}")
 
     def delete(self, id: int) -> bool:
         try:

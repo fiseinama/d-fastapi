@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-from .base import Base
+from src.infrastructure.sqlite.database import Base
 
 
 class Post(Base):

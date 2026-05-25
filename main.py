@@ -1,5 +1,10 @@
+from fastapi import Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 import asyncio
 import uvicorn
+from fastapi.staticfiles import StaticFiles
 from src.app import create_app
 from src.infrastructure.sqlite.database import engine, Base
 
@@ -11,6 +16,7 @@ from src.infrastructure.sqlite.models.comment import Comment
 from src.infrastructure.sqlite.models.location import Location
 
 app = create_app()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 async def run() -> None:
     # Base.metadata.create_all(bind=engine)

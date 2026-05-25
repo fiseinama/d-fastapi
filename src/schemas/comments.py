@@ -4,6 +4,7 @@ from typing import Optional
 
 class CommentBase(BaseModel):
     text: str = Field(..., description="Текст комментария")
+    image: Optional[str] = None
     author_id: int = Field(..., ge=1)
     post_id: int = Field(..., ge=1)
 
@@ -21,6 +22,7 @@ class CommentCreate(CommentBase):
 
 class CommentUpdate(BaseModel):
     text: Optional[str] = None
+    image: Optional[str] = None
 
     @field_validator('text')
     @classmethod

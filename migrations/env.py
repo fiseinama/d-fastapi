@@ -22,7 +22,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from src.infrastructure.sqlite.models.base import Base
+from src.infrastructure.sqlite.database import Base
 
 from src.infrastructure.sqlite.models.users import User
 from src.infrastructure.sqlite.models.posts import Post

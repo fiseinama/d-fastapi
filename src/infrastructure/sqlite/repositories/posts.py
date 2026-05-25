@@ -27,6 +27,7 @@ class PostRepository:
                 session.add(post)
                 session.commit()
                 session.refresh(post)
+                session.expunge(post)
                 return post
         except IntegrityError as e:
             raise AlreadyExistsException(f"Пост с таким slug или данными уже существует: {str(e.orig)}")
@@ -43,6 +44,7 @@ class PostRepository:
                     setattr(post, key, value)
                 session.commit()
                 session.refresh(post)
+                session.expunge(post)
                 return post
         except IntegrityError as e:
             raise AlreadyExistsException(f"Конфликт данных при обновлении поста: {str(e.orig)}")
