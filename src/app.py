@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
 
 from src.api.posts import router as posts_router
@@ -9,7 +10,6 @@ from src.api.users import router as users_router
 from src.api.location import router as location_router
 from src.api.auth import router as auth_router
 
-# Импортируем наши исключения
 from src.core.exceptions import NotFoundException, AlreadyExistsException, InfrastructureException, UnauthorizedException
 
 def create_app() -> FastAPI:
@@ -35,6 +35,10 @@ def create_app() -> FastAPI:
     async def unauthorized_exception_handler(request: Request, exc: UnauthorizedException):
         return JSONResponse(status_code=401, content={"detail": exc.detail})
 
+    @app.exception_handler(ValidationError)
+    async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
+        return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -42,6 +46,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
 
     app.include_router(auth_router, prefix="/api/v1")
 
@@ -52,3 +57,4 @@ def create_app() -> FastAPI:
     app.include_router(location_router, prefix="/api/v1")
 
     return app
+app = create_app()

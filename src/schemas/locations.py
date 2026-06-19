@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic_core import PydanticCustomError  # Наш щит от 500-х ошибок
 from typing import Optional
 
 class LocationBase(BaseModel):
@@ -9,11 +10,10 @@ class LocationBase(BaseModel):
     @field_validator('name')
     @classmethod
     def validate_name(cls, v: str):
-        # Проверяем на пустоту и минимальную длину осмысленного текста
         if not v.strip():
-            raise ValueError('Название локации не может быть пустым')
+            raise PydanticCustomError('value_error', 'Название локации не может быть пустым')
         if len(v.strip()) < 2:
-            raise ValueError('Название локации слишком короткое')
+            raise PydanticCustomError('value_error', 'Название локации слишком короткое')
         return v
 
 
@@ -28,8 +28,11 @@ class LocationUpdate(BaseModel):
     @field_validator('name')
     @classmethod
     def validate_name_update(cls, v: Optional[str]):
-        if v is not None and not v.strip():
-            raise ValueError('При обновлении название не может быть пустым')
+        if v is not None:
+            if not v.strip():
+                raise PydanticCustomError('value_error', 'При обновлении название не может быть пустым')
+            if len(v.strip()) < 2:
+                raise PydanticCustomError('value_error', 'Обновленное название слишком короткое')
         return v
 
 

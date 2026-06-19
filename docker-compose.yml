@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Наша база данных PostgreSQL
+  db:
+    image: postgres:15
+    container_name: blogicum-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: blogicum_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # Наше FastAPI приложение
+  web:
+    build: .
+    container_name: blogicum-app
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:

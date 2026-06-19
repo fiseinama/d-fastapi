@@ -11,6 +11,7 @@ from src.infrastructure.sqlite.database import engine, Base
 # Импорты моделей необходимы для работы SQLAlchemy
 from src.infrastructure.sqlite.models.users import User
 from src.infrastructure.sqlite.models.posts import Post
+from src.infrastructure.sqlite.models.post_image import PostImage
 from src.infrastructure.sqlite.models.category import Category
 from src.infrastructure.sqlite.models.comment import Comment
 from src.infrastructure.sqlite.models.location import Location

@@ -1,64 +1,77 @@
 from typing import List, Optional
+
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from src.infrastructure.sqlite.database import get_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.core.exceptions import AlreadyExistsException, InfrastructureException
 from src.infrastructure.sqlite.models.posts import Post
 from src.schemas.posts import PostCreate, PostUpdate
-from src.core.exceptions import AlreadyExistsException, InfrastructureException
+
 
 class PostRepository:
-    def get_all(self) -> List[Post]:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_all(self) -> List[Post]:
         try:
-            with get_session() as session:
-                return session.query(Post).all()
+            result = await self.session.execute(
+                select(Post).options(selectinload(Post.images))
+            )
+            return list(result.scalars().all())
         except SQLAlchemyError as e:
             raise InfrastructureException(f"Ошибка при получении постов: {str(e)}")
 
-    def get_by_id(self, post_id: int) -> Optional[Post]:
+    async def get_by_id(self, post_id: int) -> Optional[Post]:
         try:
-            with get_session() as session:
-                return session.query(Post).filter(Post.id == post_id).first()
+            result = await self.session.execute(
+                select(Post)
+                .where(Post.id == post_id)
+                .options(selectinload(Post.images))
+            )
+            return result.scalar_one_or_none()
         except SQLAlchemyError as e:
             raise InfrastructureException(f"Ошибка при получении поста: {str(e)}")
 
-    def create(self, data: PostCreate) -> Post:
+    async def create(self, data: PostCreate) -> Post:
         try:
-            with get_session() as session:
-                post = Post(**data.model_dump())
-                session.add(post)
-                session.commit()
-                session.refresh(post)
-                session.expunge(post)
-                return post
+            post = Post(**data.model_dump())
+            self.session.add(post)
+            await self.session.flush()
+            await self.session.refresh(post)
+            return post
         except IntegrityError as e:
-            raise AlreadyExistsException(f"Пост с таким slug или данными уже существует: {str(e.orig)}")
+            raise AlreadyExistsException(
+                f"Пост с таким slug или данными уже существует: {str(e.orig)}"
+            )
         except SQLAlchemyError as e:
             raise InfrastructureException(f"Ошибка при создании поста: {str(e)}")
 
-    def update(self, post_id: int, data: PostUpdate) -> Optional[Post]:
+    async def update(self, post_id: int, data: PostUpdate) -> Optional[Post]:
         try:
-            with get_session() as session:
-                post = session.query(Post).filter(Post.id == post_id).first()
-                if not post:
-                    return None
-                for key, value in data.model_dump(exclude_unset=True).items():
-                    setattr(post, key, value)
-                session.commit()
-                session.refresh(post)
-                session.expunge(post)
-                return post
+            result = await self.session.execute(select(Post).where(Post.id == post_id))
+            post = result.scalar_one_or_none()
+            if not post:
+                return None
+            for key, value in data.model_dump(exclude_unset=True).items():
+                setattr(post, key, value)
+            await self.session.flush()
+            await self.session.refresh(post)
+            return post
         except IntegrityError as e:
             raise AlreadyExistsException(f"Конфликт данных при обновлении поста: {str(e.orig)}")
         except SQLAlchemyError as e:
             raise InfrastructureException(f"Ошибка при обновлении поста: {str(e)}")
 
-    def delete(self, post_id: int) -> bool:
+    async def delete(self, post_id: int) -> bool:
         try:
-            with get_session() as session:
-                post = session.query(Post).filter(Post.id == post_id).first()
-                if not post:
-                    return False
-                session.delete(post)
-                session.commit()
-                return True
+            result = await self.session.execute(select(Post).where(Post.id == post_id))
+            post = result.scalar_one_or_none()
+            if not post:
+                return False
+            await self.session.delete(post)
+            await self.session.flush()
+            return True
         except SQLAlchemyError as e:
             raise InfrastructureException(f"Ошибка при удалении поста: {str(e)}")

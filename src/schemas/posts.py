@@ -1,6 +1,15 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from typing import Optional
+from pydantic_core import PydanticCustomError
+from typing import List, Optional
+
+class PostImageOut(BaseModel):
+    id: int
+    post_id: int
+    image_path: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PostBase(BaseModel):
     title: str = Field(..., max_length=256)
@@ -17,20 +26,30 @@ class PostBase(BaseModel):
     def zero_to_none(cls, v):
         return None if v == 0 else v
 
+    @field_validator('category_id', mode='before')
+    @classmethod
+    def validate_category_id(cls, v):
+        if v == 0:
+            raise PydanticCustomError(
+                'value_error',
+                'Категория не может быть 0. Пожалуйста, выберите существующую категорию.'
+            )
+        return v
+
     @field_validator('title')
     @classmethod
     def validate_title(cls, v: str):
         if not v.strip():
-            raise ValueError('Заголовок поста не может быть пустым')
+            raise PydanticCustomError('value_error', 'Заголовок поста не может быть пустым')
         if len(v) < 3:
-            raise ValueError('Заголовок слишком короткий (минимум 3 символа)')
+            raise PydanticCustomError('value_error', 'Заголовок слишком короткий (минимум 3 символа)')
         return v
 
     @field_validator('text')
     @classmethod
     def validate_text(cls, v: str):
         if not v.strip():
-            raise ValueError('Текст поста не может быть пустым')
+            raise PydanticCustomError('value_error', 'Текст поста не может быть пустым')
         return v
 
 
@@ -56,16 +75,18 @@ class PostUpdate(BaseModel):
     @classmethod
     def validate_optional_fields(cls, v: Optional[str]):
         if v is not None and not v.strip():
-            raise ValueError('Поле не может быть пустым при обновлении')
+            raise PydanticCustomError('value_error', 'Поле не может быть пустым при обновлении')
         return v
 
     @field_validator('category_id')
     @classmethod
     def check_category_id(cls, v: int) -> int:
         if v == 0:
-            raise ValueError('Категория не может быть 0')
+            raise PydanticCustomError(
+                'value_error',
+                'Категория не может быть 0. Пожалуйста, выберите существующую категорию.'
+            )
         return v
-
 
 
 class PostOut(PostBase):

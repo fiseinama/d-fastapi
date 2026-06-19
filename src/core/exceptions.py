@@ -17,5 +17,6 @@ class InfrastructureException(PostAppException):
 
 class UnauthorizedException(PostAppException):
     def __init__(self, detail: str = "Не авторизован"):
+        super().__init__(detail)
         self.detail = detail
         self.status_code = 401

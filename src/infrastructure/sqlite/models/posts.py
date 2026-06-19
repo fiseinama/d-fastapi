@@ -1,6 +1,8 @@
 from datetime import datetime
-from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.infrastructure.sqlite.database import Base
 
 
@@ -27,6 +29,8 @@ class Post(Base):
     location_id: Mapped[int | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL"), nullable=True
     )
+
+    images = relationship("PostImage", back_populates="post", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Post(id={self.id}, title='{self.title[:50]}...')>"
